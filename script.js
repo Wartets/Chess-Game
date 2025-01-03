@@ -1,6 +1,10 @@
 const chessBoard = document.getElementById('chess-board');
 const statusText = document.getElementById('status');
 const restartButton = document.getElementById('restart-game');
+const setupButton = document.getElementById('setup-board');
+const rowsInput = document.getElementById('rows');
+const columnsInput = document.getElementById('columns');
+const finishSetupButton = document.getElementById('finish-setup');
 
 const pieceSymbols = {
 	'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
@@ -27,6 +31,48 @@ document.documentElement.style.setProperty('--b', RowN);
 let board = JSON.parse(JSON.stringify(initialBoard));
 let selectedCell = null;
 let currentPlayer = 'white';
+let isSetupMode = false;
+
+setupButton.addEventListener('click', () => {
+    const newRowN = parseInt(rowsInput.value, 10);
+    const newColN = parseInt(columnsInput.value, 10);
+
+    if (newRowN === RowN && newColN === ColN) {
+        isSetupMode = true;
+        setupButton.style.display = 'none';
+        finishSetupButton.style.display = 'inline-block';
+        restartButton.style.display = 'none';
+        statusText.textContent = 'Setup mode: Click on cells to place pieces. Click "Finish Setup" to start.';
+        return;
+    }
+
+    RowN = newRowN;
+    ColN = newColN;
+
+    document.documentElement.style.setProperty('--a', ColN);
+    document.documentElement.style.setProperty('--b', RowN);
+
+    board = Array.from({ length: RowN }, () => Array(ColN).fill(''));
+    isSetupMode = true;
+    createBoard();
+
+    setupButton.style.display = 'none';
+    finishSetupButton.style.display = 'inline-block';
+    restartButton.style.display = 'none';
+    statusText.textContent = 'Setup mode: Click on cells to place pieces. Click "Finish Setup" to start.';
+});
+
+
+finishSetupButton.addEventListener('click', () => {
+    isSetupMode = false;
+
+    setupButton.style.display = 'inline-block';
+    finishSetupButton.style.display = 'none';
+    restartButton.style.display = 'inline-block';
+
+    statusText.textContent = 'Game setup complete! Click on pieces to start playing.';
+    createBoard();
+});
 
 function createBoard() {
     chessBoard.innerHTML = '';
@@ -98,26 +144,35 @@ function highlightValidMoves(row, col) {
 }
 
 function handleCellClick(row, col) {
-    const piece = (board[row] && board[row][col]) || '';
+    if (isSetupMode) {
+        const currentPiece = board[row][col];
+        const nextPiece = prompt(`Enter piece symbol :\nP for pawn, R for rook, N for knight, B for bishop, Q for queen and K for King, or leave empty to clear.\nlowercase for black and uppercase for white`);
 
-    if (selectedCell) {
-        const [fromRow, fromCol] = selectedCell;
-
-        if (isValidMove(fromRow, fromCol, row, col)) {
-            movePiece(fromRow, fromCol, row, col);
-            switchPlayer();
-        } else {
-            statusText.textContent = `Invalid move for ${currentPlayer}`;
-        }
-
-        selectedCell = null;
+        if (nextPiece === null) return;
+        board[row][col] = nextPiece.trim() || '';
         createBoard();
-    } else if (piece && isCurrentPlayerPiece(piece)) {
-        selectedCell = [row, col];
-        highlightValidMoves(row, col);
-        statusText.textContent = `Selected ${pieceSymbols[piece]} at ${RowN - row}${'abcdefgh'[col % ColN]}`;
     } else {
-        statusText.textContent = 'Select a valid piece to move';
+        const piece = (board[row] && board[row][col]) || '';
+
+        if (selectedCell) {
+            const [fromRow, fromCol] = selectedCell;
+
+            if (isValidMove(fromRow, fromCol, row, col)) {
+                movePiece(fromRow, fromCol, row, col);
+                switchPlayer();
+            } else {
+                statusText.textContent = `Invalid move for ${currentPlayer}`;
+            }
+
+            selectedCell = null;
+            createBoard();
+        } else if (piece && isCurrentPlayerPiece(piece)) {
+            selectedCell = [row, col];
+            highlightValidMoves(row, col);
+            statusText.textContent = `Selected ${pieceSymbols[piece]} at ${RowN - row}${'abcdefgh'[col % ColN]}`;
+        } else {
+            statusText.textContent = 'Select a valid piece to move';
+        }
     }
 }
 
@@ -317,5 +372,9 @@ function restartGame() {
 	createBoard();
 }
 
-restartButton.addEventListener('click', restartGame);
+restartButton.addEventListener('click', () => {
+    isSetupMode = false;
+    restartGame();
+});
+
 createBoard();

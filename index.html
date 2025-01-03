@@ -10,17 +10,27 @@
 
 <body>
 	<h1>Chess Game</h1>
-	<div id="chess-board"></div>
+	
 	<div id="controls">
+		<label for="rows">Rows:</label>
+		<input id="rows" type="number" min="1" max="16" value="8">
+		<label for="columns">Columns:</label>
+		<input id="columns" type="number" min="1" max="16" value="8">
+		<button id="setup-board">Setup Board</button>
+		<button id="finish-setup" style="display: none;">Finish Setup</button>
 		<button id="restart-game">Restart Game</button>
 		<p id="status">Welcome to Chess!</p>
 	</div>
+	
+	<div id="chess-board"></div>
+	
 	<footer>
 		<p>&copy; 2024. All rights reserved. Designed by 
 			<a href="https://wartets.github.io/Wartets/" target="_blank">&#x2197;Wartets</a>.
 			<wbr>Check out more projects on <a href="https://github.com/wartets" target="_blank">&#x2197;GitHub</a>.
 		</p>
 	</footer>
+	
 	<script src="script.js"></script>
 </body>
 
