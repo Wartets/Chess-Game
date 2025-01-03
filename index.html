@@ -4,8 +4,12 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Chess Game</title>
+    <link rel="icon" href="https://wartets.github.io/N-Body-Problem/image/browser-icon.png">
+	<link rel="apple-touch-icon" href="https://wartets.github.io/Wartets/img/Chess-card.png">
+    <meta property="og:image" content="https://wartets.github.io/Wartets/img/Chess-card.png">
+	<title>Chess-Game</title>
 	<link rel="stylesheet" href="styles.css">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 
 <body>
@@ -18,12 +22,21 @@
 		<input id="columns" type="number" min="1" max="16" value="8">
 		<button id="setup-board">Setup Board</button>
 		<button id="finish-setup" style="display: none;">Finish Setup</button>
+		<br>
 		<button id="restart-game">Restart Game</button>
 		<p id="status">Welcome to Chess!</p>
 	</div>
 	
 	<div id="chess-board"></div>
 	
+	<br>
+	
+	<button id="fischer-random-button" style="display: none;">Setup Fischer Random</button>
+	<button id="default-setup-button" style="display: none;">Setup Default</button>
+	<button id="capablanca-random-button" style="display: none;">Capablanca Random</button>
+	<button id="transcendental-button" style="display: none;">Transcendental</button>
+	<button id="random-setup-button" style="display: none;">Random Setup</button>
+
 	<footer>
 		<p>&copy; 2024. All rights reserved. Designed by 
 			<a href="https://wartets.github.io/Wartets/" target="_blank">&#x2197;Wartets</a>.
