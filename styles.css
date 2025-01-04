@@ -17,15 +17,15 @@ body {
 #chess-board {
     justify-content: center;
     display: grid;
-    grid-template-columns: repeat(var(--a), 31px);
-    grid-template-rows: repeat(var(--b), 31px);
+    grid-template-columns: repeat(var(--a), 35px);
+    grid-template-rows: repeat(var(--b), 35px);
 }
 
 .cell {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 30px;
+	font-size: 34px;
 	color: #000;
 }
 
@@ -35,7 +35,7 @@ body {
 
 
 .cell.dark {
-	background-color: #769656; 	#baca44
+	background-color: #769656;
 }
 
 .cell.light {

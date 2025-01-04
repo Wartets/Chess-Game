@@ -1,15 +1,8 @@
 const chessBoard = document.getElementById('chess-board');
 const statusText = document.getElementById('status');
 const restartButton = document.getElementById('restart-game');
-const setupButton = document.getElementById('setup-board');
 const rowsInput = document.getElementById('rows');
 const columnsInput = document.getElementById('columns');
-const finishSetupButton = document.getElementById('finish-setup');
-const fischerRandomButton = document.getElementById('fischer-random-button');
-const defaultSetupButton = document.getElementById('default-setup-button');
-const capablancaRandomButton = document.getElementById('capablanca-random-button');
-const transcendentalButton = document.getElementById('transcendental-button');
-const randomSetupButton = document.getElementById('random-setup-button');
 
 const pieceSymbols = {
 	'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙', 'C': 'ℂ', 'E': '𝔼',
@@ -35,90 +28,10 @@ document.documentElement.style.setProperty('--b', RowN);
 
 let board = JSON.parse(JSON.stringify(initialBoard));
 let lastSetupBoard = null;
-
+let moveHistory = [];
 let selectedCell = null;
 let currentPlayer = 'white';
 let isSetupMode = false;
-
-defaultSetupButton.addEventListener('click', () => {
-    setupDefault();
-});
-
-capablancaRandomButton.addEventListener('click', () => {
-    setupCapablancaRandom();
-});
-
-transcendentalButton.addEventListener('click', () => {
-    setupTranscendental();
-});
-
-randomSetupButton.addEventListener('click', () => {
-    setupRandomBoard();
-});
-
-setupButton.addEventListener('click', () => {
-    const newRowN = parseInt(rowsInput.value, 10);
-    const newColN = parseInt(columnsInput.value, 10);
-
-    if (newRowN === RowN && newColN === ColN) {
-        isSetupMode = true;
-        setupButton.style.display = 'none';
-        finishSetupButton.style.display = 'inline-block';
-        defaultSetupButton.style.display = 'inline-block';
-		fischerRandomButton.style.display = 'inline-block';
-		capablancaRandomButton.style.display = 'inline-block';
-		transcendentalButton.style.display = 'inline-block';
-		randomSetupButton.style.display = 'inline-block';
-        restartButton.style.display = 'none';
-        statusText.textContent = 'Setup mode: Click on cells to place pieces. Click "Finish Setup" to start.';
-        return;
-    }
-
-    RowN = newRowN;
-    ColN = newColN;
-
-    document.documentElement.style.setProperty('--a', ColN);
-    document.documentElement.style.setProperty('--b', RowN);
-
-    board = Array.from({ length: RowN }, () => Array(ColN).fill(''));
-    isSetupMode = true;
-    createBoard();
-
-    setupButton.style.display = 'none';
-    finishSetupButton.style.display = 'inline-block';
-	defaultSetupButton.style.display = 'inline-block';
-	fischerRandomButton.style.display = 'inline-block';
-	capablancaRandomButton.style.display = 'inline-block';
-	transcendentalButton.style.display = 'inline-block';
-	randomSetupButton.style.display = 'inline-block';
-    restartButton.style.display = 'none';
-    statusText.textContent = 'Setup mode: Click on cells to place pieces. Click "Finish Setup" to start.';
-});
-
-
-finishSetupButton.addEventListener('click', () => {
-    isSetupMode = false;
-	
-    lastSetupBoard = JSON.parse(JSON.stringify(board));
-
-    setupButton.style.display = 'inline-block';
-    finishSetupButton.style.display = 'none';
-	defaultSetupButton.style.display = 'none';
-	fischerRandomButton.style.display = 'none';
-	capablancaRandomButton.style.display = 'none';
-	transcendentalButton.style.display = 'none';
-	randomSetupButton.style.display = 'none';
-    restartButton.style.display = 'inline-block';
-	
-    currentPlayer = 'white';
-
-    statusText.textContent = 'Game setup complete! Click on pieces to start playing.';
-    createBoard();
-});
-
-fischerRandomButton.addEventListener('click', () => {
-    setupFischerRandom();
-});
 
 function createBoard() {
     chessBoard.innerHTML = '';
@@ -146,184 +59,7 @@ function createBoard() {
             chessBoard.appendChild(cell);
         }
     }
-}
-
-function setupRandomBoard() {
-    const allPieces = [
-        'K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 'r', 'b', 'n', 'p', '', ''
-    ];
-
-    let randomBoard = Array.from({ length: RowN }, () => Array(ColN).fill(''));
-
-    let pieces = [];
-    let numWhiteKings = 0;
-    let numBlackKings = 0;
-
-    while (pieces.length < RowN * ColN) {
-        let piece = allPieces[Math.floor(Math.random() * allPieces.length)];
-        
-        if (piece === 'K' && numWhiteKings < 1) {
-            pieces.push('K');
-            numWhiteKings++;
-        } else if (piece === 'k' && numBlackKings < 1) {
-            pieces.push('k');
-            numBlackKings++;
-        } else if (piece !== 'K' && piece !== 'k') {
-            pieces.push(piece);
-        }
-    }
-
-    pieces = pieces.sort(() => Math.random() - 0.5);
-
-    let pieceIndex = 0;
-    for (let row = 0; row < RowN; row++) {
-        for (let col = 0; col < ColN; col++) {
-            randomBoard[row][col] = pieces[pieceIndex];
-            pieceIndex++;
-        }
-    }
-
-    board = randomBoard;
-    createBoard();
-    statusText.textContent = 'Random setup complete. White to play!';
-}
-
-function setupDefault() {
-    board = JSON.parse(JSON.stringify(initialBoard));
-    RowN = 8;
-    ColN = 8;
-    document.documentElement.style.setProperty('--a', ColN);
-    document.documentElement.style.setProperty('--b', RowN);
-
-    currentPlayer = 'white';
-    selectedCell = null;
-    statusText.textContent = 'Default setup complete. White to play!';
-    createBoard();
-}
-
-function setupFischerRandom() {
-    const pieces = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
-
-    let shuffledPieces;
-    do {
-        shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
-    } while (!isValidFischerSetup(shuffledPieces));
-
-    board = Array.from({ length: 8 }, () => Array(8).fill(''));
-    board[0] = shuffledPieces.map(piece => piece.toLowerCase());
-    board[1] = Array(8).fill('p');
-    board[6] = Array(8).fill('P');
-    board[7] = shuffledPieces.map(piece => piece.toUpperCase());
-
-    RowN = 8;
-    ColN = 8;
-    document.documentElement.style.setProperty('--a', ColN);
-    document.documentElement.style.setProperty('--b', RowN);
-
-    currentPlayer = 'white';
-    selectedCell = null;
-    statusText.textContent = 'Fischer Random setup complete. White to play!';
-    createBoard();
-}
-
-function isValidFischerSetup(pieces) {
-    const kingIndex = pieces.indexOf('K');
-    const rookIndices = [pieces.indexOf('R'), pieces.lastIndexOf('R')];
-    const bishopIndices = pieces
-        .map((piece, index) => (piece === 'B' ? index : -1))
-        .filter(index => index !== -1);
-
-    if (!(rookIndices[0] < kingIndex && kingIndex < rookIndices[1])) return false;
-
-    if ((bishopIndices[0] % 2) === (bishopIndices[1] % 2)) return false;
-
-    return true;
-}
-
-function setupCapablancaRandom() {
-    const pieces = ['R', 'N', 'B', 'Q', 'K', 'C', 'E', 'B', 'N', 'R'];
-    let shuffledPieces;
-
-    do {
-        shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
-    } while (!isValidCapablancaSetup(shuffledPieces));
-
-    board = Array.from({ length: 8 }, () => Array(10).fill(''));
-    board[0] = shuffledPieces.map(piece => piece.toLowerCase());
-    board[1] = Array(10).fill('p');
-    board[6] = Array(10).fill('P');
-    board[7] = shuffledPieces.map(piece => piece.toUpperCase());
-
-    RowN = 8;
-    ColN = 10;
-    document.documentElement.style.setProperty('--a', ColN);
-    document.documentElement.style.setProperty('--b', RowN);
-
-    currentPlayer = 'white';
-    selectedCell = null;
-    statusText.textContent = 'Capablanca Random setup complete. White to play!';
-    createBoard();
-}
-
-function isValidCapablancaSetup(pieces) {
-    const kingIndex = pieces.indexOf('K');
-    const rookIndices = [pieces.indexOf('R'), pieces.lastIndexOf('R')];
-    const bishopIndices = pieces
-        .map((piece, index) => (piece === 'B' ? index : -1))
-        .filter(index => index !== -1);
-
-    const centaurIndex = pieces.indexOf('C');
-    const queenIndex = pieces.indexOf('Q');
-
-    if (!(rookIndices[0] < kingIndex && kingIndex < rookIndices[1])) return false;
-    if ((bishopIndices[0] % 2) === (bishopIndices[1] % 2)) return false;
-    if ((queenIndex % 2) === (centaurIndex % 2)) return false;
-
-    return true;
-}
-
-function setupTranscendental() {
-    const pieces = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
-    const generateRow = () => {
-        let shuffledPieces;
-        do {
-            shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
-        } while ((shuffledPieces.indexOf('B') % 2) === (shuffledPieces.lastIndexOf('B') % 2));
-        return shuffledPieces;
-    };
-
-    board = Array.from({ length: 8 }, () => Array(8).fill(''));
-    board[0] = generateRow().map(piece => piece.toLowerCase());
-    board[1] = Array(8).fill('p');
-    board[6] = Array(8).fill('P');
-    board[7] = generateRow().map(piece => piece.toUpperCase());
-
-    RowN = 8;
-    ColN = 8;
-    document.documentElement.style.setProperty('--a', ColN);
-    document.documentElement.style.setProperty('--b', RowN);
-
-    currentPlayer = 'white';
-    selectedCell = null;
-    statusText.textContent = 'Transcendental setup complete. White to play!';
-    createBoard();
-}
-
-function isThreatened(row, col, player) {
-	const opponent = player === 'white' ? 'black' : 'white';
-
-	for (let r = 0; r < RowN; r++) {
-		for (let c = 0; c < ColN; c++) {
-			const piece = board[r][c];
-			if (piece && isOpponentPiece(player, piece)) {
-				if (isValidMove(r, c, row, col)) {
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+    updateMoveHistory();
 }
 
 function highlightValidMoves(row, col) {
@@ -341,6 +77,10 @@ function highlightValidMoves(row, col) {
 	for (let toRow = 0; toRow < RowN; toRow++) {
 		for (let toCol = 0; toCol < ColN; toCol++) {
 			if (isValidMove(row, col, toRow, toCol)) {
+				const piece = board[row][col];
+				if (piece.toLowerCase() === 'k' && isThreatened(toRow, toCol, currentPlayer)) {
+					continue;
+				}
 				const validCellElement = document.querySelector(`.cell[data-row="${toRow}"][data-col="${toCol}"]`);
 				if (validCellElement) {
 					validCellElement.classList.add('valid-move');
@@ -367,6 +107,9 @@ function handleCellClick(row, col) {
             const [fromRow, fromCol] = selectedCell;
 
             if (isValidMove(fromRow, fromCol, row, col)) {
+				const capturedPiece = board[row][col] || null;
+				const movingPiece = board[fromRow][fromCol];
+				recordMove(fromRow, fromCol, row, col, movingPiece, capturedPiece);
                 movePiece(fromRow, fromCol, row, col);
                 switchPlayer();
             } else {
@@ -383,6 +126,36 @@ function handleCellClick(row, col) {
             statusText.textContent = 'Select a valid piece to move';
         }
     }
+}
+
+function isThreatened(row, col, player) {
+    const opponent = player === 'white' ? 'black' : 'white';
+
+    for (let r = 0; r < RowN; r++) {
+        for (let c = 0; c < ColN; c++) {
+            const piece = board[r][c];
+            if (piece && isOpponentPiece(player, piece)) {
+                if (isValidMove(r, c, row, col)) {
+                    return true;
+                }
+            }
+        }
+    }
+	
+    const pawnAttackOffsets = (player === 'white') ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+	
+    for (let [dr, dc] of pawnAttackOffsets) {
+        const attackerRow = row + dr;
+        const attackerCol = col + dc;
+        if (attackerRow >= 0 && attackerRow < RowN && attackerCol >= 0 && attackerCol < ColN) {
+            const piece = board[attackerRow][attackerCol];
+            if (piece && (player === 'white' ? piece === 'p' : piece === 'P')) {
+                return true;
+            }
+        }
+    }
+	
+    return false;
 }
 
 function isValidMove(fromRow, fromCol, toRow, toCol) {
@@ -409,6 +182,7 @@ function isValidMove(fromRow, fromCol, toRow, toCol) {
             if (Math.abs(toCol - fromCol) === 1 && toRow === fromRow + direction && target) {
                 return true;
             }
+
             break;
         }
         case 'r': { // Tour
@@ -436,14 +210,12 @@ function isValidMove(fromRow, fromCol, toRow, toCol) {
             }
             break;
         }
-        case 'k': { // Roi
-            if (Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1) {
-                if (!isInCheckAfterMove(fromRow, fromCol, toRow, toCol)) {
-                    return true;
-                }
-            }
-            break;
-        }
+		case 'k': { // Roi
+			if (Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1) {
+				return true;
+			}
+			break;
+		}
 		case 'c': { // Princess/Archbishop/Cardinal/Dragon
 			if (
 				(Math.abs(rowDiff) === Math.abs(colDiff) && isPathClear(fromRow, fromCol, toRow, toCol)) || // Mouvement du Fou
@@ -467,7 +239,6 @@ function isValidMove(fromRow, fromCol, toRow, toCol) {
     return false;
 }
 
-
 function isPathClear(fromRow, fromCol, toRow, toCol) {
     const rowStep = Math.sign(toRow - fromRow);
     const colStep = Math.sign(toCol - fromCol);
@@ -485,85 +256,26 @@ function isPathClear(fromRow, fromCol, toRow, toCol) {
     return true;
 }
 
-
 function movePiece(fromRow, fromCol, toRow, toCol) {
     if (!board[toRow]) board[toRow] = {};
     board[toRow][toCol] = board[fromRow][fromCol];
     delete board[fromRow][fromCol];
     if (Object.keys(board[fromRow]).length === 0) delete board[fromRow];
-}
-
-function isInCheck(player) {
-	const kingPosition = findKing(player);
-	if (!kingPosition) return false;
-
-	for (let row = 0; row < RowN; row++) {
-		for (let col = 0; col < ColN; col++) {
-			const piece = board[row][col];
-			if (piece && isOpponentPiece(player, piece)) {
-				if (isValidMove(row, col, kingPosition[0], kingPosition[1])) {
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-function isInCheckAfterMove(fromRow, fromCol, toRow, toCol) {
-	const originalFrom = board[fromRow][fromCol];
-	const originalTo = board[toRow][toCol];
-
-	movePiece(fromRow, fromCol, toRow, toCol);
-	const inCheck = isInCheck(currentPlayer);
-	board[fromRow][fromCol] = originalFrom;
-	board[toRow][toCol] = originalTo;
-
-	return inCheck;
-}
-
-function findKing(player) {
-	const king = player === 'white' ? 'K' : 'k';
-	for (let row = 0; row < RowN; row++) {
-		for (let col = 0; col < ColN; col++) {
-			if (board[row][col] === king) return [row, col];
-		}
-	}
-	return null;
+	
+    const piece = board[toRow][toCol];
+    if ((piece === 'P' && toRow === 0) || (piece === 'p' && toRow === RowN - 1)) {
+        const promotionPiece = prompt('Promote your pawn to (q for Queen, r for Rook, b for Bishop, n for Knight):').toUpperCase();
+        if (['Q', 'R', 'B', 'N', 'E', 'C'].includes(promotionPiece)) {
+            board[toRow][toCol] = currentPlayer === 'white' ? promotionPiece : promotionPiece.toLowerCase();
+        } else {
+            alert('Invalid promotion piece');
+        }
+    }
 }
 
 function isOpponentPiece(player, piece) {
 	return (player === 'white' && piece === piece.toLowerCase()) ||
 		   (player === 'black' && piece === piece.toUpperCase());
-}
-
-function checkCheckmate() {
-	for (let fromRow = 0; fromRow < RowN; fromRow++) {
-		for (let fromCol = 0; fromCol < ColN; fromCol++) {
-			const piece = board[fromRow][fromCol];
-			if (piece && isCurrentPlayerPiece(piece)) {
-				for (let toRow = 0; toRow < RowN; toRow++) {
-					for (let toCol = 0; toCol < ColN; toCol++) {
-						if (isValidMove(fromRow, fromCol, toRow, toCol)) {
-							const originalFrom = board[fromRow][fromCol];
-							const originalTo = board[toRow][toCol];
-
-							movePiece(fromRow, fromCol, toRow, toCol);
-							const inCheck = isInCheck(currentPlayer);
-							board[fromRow][fromCol] = originalFrom;
-							board[toRow][toCol] = originalTo;
-
-							if (!inCheck) {
-								return false;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	return true;
 }
 
 function isCurrentPlayerPiece(piece) {
@@ -572,23 +284,9 @@ function isCurrentPlayerPiece(piece) {
 }
 
 function switchPlayer() {
-	if (isInCheck(currentPlayer)) {
-		if (checkCheckmate()) {
-			statusText.textContent = `${currentPlayer} is in checkmate! Game over.`;
-			return;
-		}
-		statusText.textContent = `${currentPlayer} is in check!`;
-	} else {
-		if (checkCheckmate()) {
-			statusText.textContent = `${currentPlayer} is in stalemate! Game over.`;
-			return;
-		}
-	}
-
 	currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
 	statusText.textContent = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}'s turn`;
 }
-
 
 function restartGame() {
     if (lastSetupBoard) {
@@ -602,7 +300,29 @@ function restartGame() {
     createBoard();
 }
 
+function recordMove(fromRow, fromCol, toRow, toCol, movingPiece, capturedPiece) {
+    const move = {
+        piece: `${movingPiece}`,
+        from: `${RowN - fromRow}${'abcdefgh'[fromCol]}`,
+        to: `${RowN - toRow}${'abcdefgh'[toCol]}`,
+        captured: capturedPiece || null
+    };
+    moveHistory.push(move);
+}
+
+function updateMoveHistory() {
+    moveHistoryElement.innerHTML = '';
+    moveHistory.slice().reverse().forEach((move, index) => {
+        const moveText = document.createElement('div');
+        moveText.textContent = `${moveHistory.length - index}. ${pieceSymbols[move.piece]}: ${move.from} to ${move.to}` +
+            (move.captured ? ` (${pieceSymbols[move.captured]})` : '');
+        moveHistoryElement.appendChild(moveText);
+    });
+}
+
 restartButton.addEventListener('click', () => {
+	moveHistory = [];
+    moveHistoryElement.innerHTML = '';
     isSetupMode = false;
     restartGame();
 });
