@@ -29,9 +29,16 @@ document.documentElement.style.setProperty('--b', RowN);
 let board = JSON.parse(JSON.stringify(initialBoard));
 let lastSetupBoard = null;
 let moveHistory = [];
+let castleRights = {
+    white: { kingSide: true, queenSide: true },
+    black: { kingSide: true, queenSide: true },
+};
+
 let selectedCell = null;
 let currentPlayer = 'white';
 let isSetupMode = false;
+
+const columnLabels = Array.from({ length: ColN }, (_, i) => String.fromCharCode(97 + i));
 
 function createBoard() {
     chessBoard.innerHTML = '';
@@ -100,7 +107,8 @@ function handleCellClick(row, col) {
         if (nextPiece === null) return;
         board[row][col] = nextPiece.trim() || '';
         createBoard();
-    } else {
+    } 
+	else {
         const piece = (board[row] && board[row][col]) || '';
 
         if (selectedCell) {
@@ -121,7 +129,7 @@ function handleCellClick(row, col) {
         } else if (piece && isCurrentPlayerPiece(piece)) {
             selectedCell = [row, col];
             highlightValidMoves(row, col);
-            statusText.textContent = `Selected ${pieceSymbols[piece]} at ${RowN - row}${'abcdefgh'[col % ColN]}`;
+			statusText.textContent = `Selected ${pieceSymbols[piece]} at ${RowN - row}${String.fromCharCode(97 + col)}`;
         } else {
             statusText.textContent = 'Select a valid piece to move';
         }
@@ -214,6 +222,25 @@ function isValidMove(fromRow, fromCol, toRow, toCol) {
 			if (Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1) {
 				return true;
 			}
+
+			if (fromRow === toRow && Math.abs(colDiff) === 2) {
+				const isKingSide = toCol > fromCol;
+				const rookCol = isKingSide ? ColN - 1 : 0;
+				const betweenCols = isKingSide
+					? [fromCol + 1, fromCol + 2]
+					: [fromCol - 1, fromCol - 2];
+
+				if ((currentPlayer === 'white' && castleRights.white[isKingSide ? 'kingSide' : 'queenSide']) ||
+					(currentPlayer === 'black' && castleRights.black[isKingSide ? 'kingSide' : 'queenSide'])) {
+					if (board[fromRow][rookCol].toLowerCase() === 'r' &&
+						betweenCols.every(col => !board[fromRow][col]) &&
+						!isThreatened(fromRow, fromCol, currentPlayer) &&
+						!isThreatened(fromRow, betweenCols[0], currentPlayer) &&
+						!isThreatened(fromRow, toCol, currentPlayer)) {
+						return true;
+					}
+				}
+			}
 			break;
 		}
 		case 'c': { // Princess/Archbishop/Cardinal/Dragon
@@ -257,6 +284,17 @@ function isPathClear(fromRow, fromCol, toRow, toCol) {
 }
 
 function movePiece(fromRow, fromCol, toRow, toCol) {
+    const movingPiece = board[fromRow][fromCol];
+    
+    if (movingPiece.toLowerCase() === 'k' && Math.abs(toCol - fromCol) === 2) {
+        const isKingSide = toCol > fromCol;
+        const rookCol = isKingSide ? ColN - 1 : 0;
+        const newRookCol = isKingSide ? toCol - 1 : toCol + 1;
+
+        board[toRow][newRookCol] = board[fromRow][rookCol];
+        board[fromRow][rookCol] = '';
+    }
+	
     if (!board[toRow]) board[toRow] = {};
     board[toRow][toCol] = board[fromRow][fromCol];
     delete board[fromRow][fromCol];
@@ -271,6 +309,33 @@ function movePiece(fromRow, fromCol, toRow, toCol) {
             alert('Invalid promotion piece');
         }
     }
+	
+    if (movingPiece === 'K') castleRights.white = { kingSide: false, queenSide: false };
+    if (movingPiece === 'k') castleRights.black = { kingSide: false, queenSide: false };
+    if (movingPiece === 'R' && fromRow === RowN - 1) {
+        if (fromCol === 0) castleRights.white.queenSide = false;
+        if (fromCol === ColN - 1) castleRights.white.kingSide = false;
+    }
+    if (movingPiece === 'r' && fromRow === 0) {
+        if (fromCol === 0) castleRights.black.queenSide = false;
+        if (fromCol === ColN - 1) castleRights.black.kingSide = false;
+    }
+}
+
+function findKingAndRooks(color) {
+    const king = color === 'white' ? 'K' : 'k';
+    const rook = color === 'white' ? 'R' : 'r';
+
+    let kingPos = null;
+    const rooks = [];
+    
+    for (let row = 0; row < RowN; row++) {
+        for (let col = 0; col < ColN; col++) {
+            if (board[row][col] === king) kingPos = [row, col];
+            if (board[row][col] === rook) rooks.push([row, col]);
+        }
+    }
+    return { kingPos, rooks };
 }
 
 function isOpponentPiece(player, piece) {
