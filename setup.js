@@ -89,6 +89,7 @@ finishSetupButton.addEventListener('click', () => {
 
     statusText.textContent = 'Game setup complete! Click on pieces to start playing.';
     createBoard();
+	checkMoveHistory();
 });
 
 fischerRandomButton.addEventListener('click', () => {
@@ -269,4 +270,14 @@ function setupTranscendental() {
 	
 	moveHistory = [];
 	moveHistoryElement.innerHTML = '';
+}
+
+function checkMoveHistory() {
+	const moveHistory = document.getElementById('move-history');
+	
+	if (moveHistory && moveHistory.innerHTML.trim() === '') {
+		moveHistory.style.display = 'none';
+	} else {
+		moveHistory.style.display = 'block';
+	}
 }
